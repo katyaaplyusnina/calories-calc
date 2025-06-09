@@ -108,8 +108,8 @@ const ProductCatalog: React.FC = () => {
                     message.success('Продукт успешно обновлен');
                 } else {
                     const newProduct: IProduct = {
-                        id: Date.now().toString(),
                         ...values,
+                        id: Date.now().toString(),
                     };
                     setProducts([...products, newProduct]);
                     message.success('Продукт успешно добавлен');
