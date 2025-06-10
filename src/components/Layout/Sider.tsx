@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
     HomeOutlined,
     AppstoreOutlined,
-    CalculatorOutlined,
+    CalculatorOutlined, CalendarOutlined,
 } from '@ant-design/icons';
 
 const Sider = () => {
@@ -17,6 +17,9 @@ const Sider = () => {
             </Menu.Item>
             <Menu.Item key="3" icon={<CalculatorOutlined />}>
                 <Link to="/calculator">Калькулятор калорий</Link>
+            </Menu.Item>
+            <Menu.Item key="4" icon={<CalendarOutlined />}>
+                <Link to="/daily-meals">Дневное питание</Link>
             </Menu.Item>
         </Menu>
     );
