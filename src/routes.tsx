@@ -5,7 +5,7 @@ import NotFound from "./components/pages/NotFound";
 import About from "./components/pages/About";
 
 const ProductCatalog = lazy(() => import('./components/pages/ProductCatalog'));
-
+const DailyMeals = lazy(() => import('./components/pages/DailyMeals'));
 const Home = lazy(() => import('./components/pages/Home'));
 
 const routes: RouteObject[] = [
@@ -24,6 +24,10 @@ const routes: RouteObject[] = [
             {
                 path: 'products',
                 element: <ProductCatalog />,
+            },
+            {
+                path: 'daily-meals',
+                element: <DailyMeals />,
             },
             {
                 path: '*',
