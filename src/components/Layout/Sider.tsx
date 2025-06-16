@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import {
     HomeOutlined,
     AppstoreOutlined,
-    CalculatorOutlined, CalendarOutlined,
+    CalculatorOutlined, CalendarOutlined, LogoutOutlined,
 } from '@ant-design/icons';
+import LogoutButton from "../auth/LogoutButton";
 
 const Sider = () => {
     return (
@@ -20,6 +21,9 @@ const Sider = () => {
             </Menu.Item>
             <Menu.Item key="4" icon={<CalendarOutlined />}>
                 <Link to="/daily-meals">Дневное питание</Link>
+            </Menu.Item>
+            <Menu.Item key="5" icon={<LogoutOutlined />}>
+                <LogoutButton></LogoutButton>
             </Menu.Item>
         </Menu>
     );

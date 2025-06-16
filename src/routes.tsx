@@ -3,12 +3,18 @@ import { RouteObject } from 'react-router-dom';
 import AppLayout from './components/Layout/AppLayout';
 import NotFound from "./components/pages/NotFound";
 import About from "./components/pages/About";
+import AuthRoute from "./components/AuthRoute";
 
+const Login = lazy(() => import('./components/auth/LoginForm'));
 const ProductCatalog = lazy(() => import('./components/pages/ProductCatalog'));
 const DailyMeals = lazy(() => import('./components/pages/DailyMeals'));
 const Home = lazy(() => import('./components/pages/Home'));
 
 const routes: RouteObject[] = [
+    {
+        path: '/login',
+        element: <Login />,
+    },
     {
         path: '/',
         element: <AppLayout />,
@@ -23,11 +29,19 @@ const routes: RouteObject[] = [
             },
             {
                 path: 'products',
-                element: <ProductCatalog />,
+                element: (
+                    <AuthRoute>
+                        <ProductCatalog />
+                    </AuthRoute>
+                ),
             },
             {
                 path: 'daily-meals',
-                element: <DailyMeals />,
+                element: (
+                    <AuthRoute>
+                        <DailyMeals />
+                    </AuthRoute>
+                ),
             },
             {
                 path: '*',
