@@ -6,26 +6,25 @@ import {
     Table,
     Modal,
     Space,
-    message,
-    Input
+    Input, Checkbox
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { IProduct } from '../../types/product';
+import { IProduct } from '../../types/Product';
+import ProductService from "../../services/product.service";
+import Utils from "../../utils/Utils";
 
 const { Search } = Input;
 
 const ProductCatalog: React.FC = () => {
     const [form] = Form.useForm();
-    const [products, setProducts] = useState<IProduct[]>(() => {
-        const saved = localStorage.getItem('products');
-        return saved ? JSON.parse(saved) : [];
-    });
+    const [products, setProducts] = useState<IProduct[]>([]);
+
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
-        localStorage.setItem('products', JSON.stringify(products));
-    }, [products]);
+        ProductService.getAll().then(data => setProducts(data));
+    }, []);
 
     const columns: ColumnsType<IProduct> = [
         {
@@ -39,28 +38,29 @@ const ProductCatalog: React.FC = () => {
             dataIndex: 'calories',
             key: 'calories',
             align: 'center',
-            sorter: (a, b) => a.calories - b.calories,
+            render: (_, r) => Utils.getCalories(r),
+            sorter: (a, b) => Utils.getCalories(a) - Utils.getCalories(b),
         },
         {
             title: 'Белки (г)',
-            dataIndex: 'proteins',
+            dataIndex: 'protein',
             key: 'proteins',
             align: 'center',
-            sorter: (a, b) => a.proteins - b.proteins,
+            sorter: (a, b) => a.protein - b.protein,
         },
         {
             title: 'Жиры (г)',
-            dataIndex: 'fats',
+            dataIndex: 'fat',
             key: 'fats',
             align: 'center',
-            sorter: (a, b) => a.fats - b.fats,
+            sorter: (a, b) => a.fat - b.fat,
         },
         {
             title: 'Углеводы (г)',
-            dataIndex: 'carbohydrates',
+            dataIndex: 'carbs',
             key: 'carbohydrates',
             align: 'center',
-            sorter: (a, b) => a.carbohydrates - b.carbohydrates,
+            sorter: (a, b) => a.carbs - b.carbs,
         },
         {
             title: 'Дефолтный вес (г)',
@@ -77,7 +77,7 @@ const ProductCatalog: React.FC = () => {
                     <Button type="link" onClick={() => handleEdit(record)}>
                         Редактировать
                     </Button>
-                    <Button type="link" danger onClick={() => handleDelete(record.id)}>
+                    <Button type="link" danger onClick={() => handleDelete(record.id!)}>
                         Удалить
                     </Button>
                 </Space>
@@ -98,21 +98,25 @@ const ProductCatalog: React.FC = () => {
     const handleSubmit = () => {
         form
             .validateFields()
-            .then((values) => {
+            .then(async (values) => {
                 const editedId = form.getFieldValue('id');
 
                 if (editedId) {
+                    const updatedProduct = { ...values };
+
+                    await ProductService.update(editedId, updatedProduct);
+
                     setProducts(products.map(product =>
                         product.id === editedId ? { ...values, id: editedId } : product
                     ));
-                    message.success('Продукт успешно обновлен');
                 } else {
-                    const newProduct: IProduct = {
-                        ...values,
-                        id: Date.now().toString(),
-                    };
+                    const newProduct: IProduct = { ...values };
+
+                    const productResponse = await ProductService.create(newProduct);
+
+                    newProduct.id = productResponse.id;
+
                     setProducts([...products, newProduct]);
-                    message.success('Продукт успешно добавлен');
                 }
 
                 handleCancel();
@@ -127,9 +131,10 @@ const ProductCatalog: React.FC = () => {
         setIsModalVisible(true);
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: number) => {
+        await ProductService.delete(id);
+
         setProducts(products.filter((product) => product.id !== id));
-        message.success('Продукт успешно удален');
     };
 
     const filteredProducts = products.filter(product =>
@@ -185,19 +190,7 @@ const ProductCatalog: React.FC = () => {
                     </Form.Item>
 
                     <Form.Item
-                        name="calories"
-                        label="Калории (ккал на 100г)"
-                        rules={[
-                            { required: true, message: 'Пожалуйста, укажите калорийность' },
-                            { type: 'number', min: 0, message: 'Калории не могут быть отрицательными' },
-                            { type: 'number', max: 1000, message: 'Слишком большое значение' }
-                        ]}
-                    >
-                        <InputNumber min={0} max={1000} step={1} style={{ width: '100%' }} />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="proteins"
+                        name="protein"
                         label="Белки (г на 100г)"
                         rules={[
                             { required: true, message: 'Пожалуйста, укажите содержание белков' },
@@ -208,7 +201,7 @@ const ProductCatalog: React.FC = () => {
                     </Form.Item>
 
                     <Form.Item
-                        name="fats"
+                        name="fat"
                         label="Жиры (г на 100г)"
                         rules={[
                             { required: true, message: 'Пожалуйста, укажите содержание жиров' },
@@ -219,7 +212,7 @@ const ProductCatalog: React.FC = () => {
                     </Form.Item>
 
                     <Form.Item
-                        name="carbohydrates"
+                        name="carbs"
                         label="Углеводы (г на 100г)"
                         rules={[
                             { required: true, message: 'Пожалуйста, укажите содержание углеводов' },
@@ -238,6 +231,17 @@ const ProductCatalog: React.FC = () => {
                         ]}
                     >
                         <InputNumber min={1} step={1} style={{ width: '100%' }} />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="isTrusted"
+                        label="trusted"
+                        valuePropName="checked"
+                        rules={[
+                            { type: 'boolean' }
+                        ]}
+                    >
+                        <Checkbox style={{ width: '100%' }} />
                     </Form.Item>
                 </Form>
             </Modal>
