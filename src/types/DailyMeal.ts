@@ -1,8 +1,6 @@
-import { IProduct } from './Product';
-
 export interface IDailyMeal {
-  id: number,
-  weight: number,
-  product: IProduct,
-  date: string,
+    id?: number,
+    weight: number,
+    productId: number,
+    date: string,
 }
