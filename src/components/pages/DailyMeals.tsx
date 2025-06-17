@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, DatePicker, Modal, Form, InputNumber, Select, message, Card, Space } from 'antd';
+import { Table, Button, DatePicker, Modal, Form, InputNumber, Select, Card, Space } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { IDailyMeal } from "../../types/DailyMeal";
@@ -9,7 +9,6 @@ import ProductService from "../../services/product.service";
 import Utils from "../../utils/Utils";
 import DailyProgress from "../DailyProgress";
 
-const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const DailyMealsPage: React.FC = () => {
@@ -178,6 +177,8 @@ const DailyMealsPage: React.FC = () => {
                 loading={loading}
                 pagination={false}
             />
+
+            <DailyProgress meals={meals} products={products} />
 
             <Modal
                 title="Добавить продукт"
