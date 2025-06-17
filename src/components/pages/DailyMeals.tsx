@@ -1,34 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, InputNumber, Select, message } from 'antd';
+import { Table, Button, DatePicker, Modal, Form, InputNumber, Select, Card, Space } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { IMealItem, IDailyMeals } from '../../types/meal';
-import { IProduct } from '../../types/product';
+import dayjs from 'dayjs';
+import { IDailyMeal } from "../../types/DailyMeal";
+import { IProduct } from "../../types/Product";
+import DailyMealsService from "../../services/daily-meals.service";
+import ProductService from "../../services/product.service";
+import Utils from "../../utils/Utils";
+import DailyProgress from "../DailyProgress";
 
 const { Option } = Select;
 
-const DailyMeals: React.FC = () => {
-    const [meals, setMeals] = useState<IDailyMeals>(() => {
-        const saved = localStorage.getItem('dailyMeals');
-        return saved ? JSON.parse(saved) : { date: new Date().toISOString().split('T')[0], items: [] };
-    });
-
-    const [products, setProducts] = useState<IProduct[]>(() => {
-        const saved = localStorage.getItem('products');
-        return saved ? JSON.parse(saved) : [];
-    });
-
+const DailyMealsPage: React.FC = () => {
+    const [meals, setMeals] = useState<IDailyMeal[]>([]);
+    const [products, setProducts] = useState<IProduct[]>([]);
+    const [selectedDate, setSelectedDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
+    const [loading, setLoading] = useState(false);
 
+    // Загрузка данных
     useEffect(() => {
-        localStorage.setItem('dailyMeals', JSON.stringify(meals));
-    }, [meals]);
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [mealsData, productsData] = await Promise.all([
+                    DailyMealsService.getByDate(selectedDate),
+                    ProductService.getAll(),
+                ]);
+                setMeals(mealsData);
+                setProducts(productsData);
+            } catch (error) {
+                console.log(error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const columns: ColumnsType<IMealItem> = [
+        fetchData();
+    }, [selectedDate]);
+
+    // Колонки таблицы
+    const columns: ColumnsType<IDailyMeal> = [
         {
             title: 'Продукт',
-            dataIndex: 'name',
             key: 'name',
+            render: (_, record) => {
+                const product = products.find(p => p.id === record.productId);
+
+                return product?.name ?? 'Неизвестный продукт';
+            }
         },
         {
             title: 'Вес (г)',
@@ -37,47 +58,62 @@ const DailyMeals: React.FC = () => {
             align: 'center',
         },
         {
-            title: 'Калории',
-            dataIndex: 'calories',
-            key: 'calories',
-            align: 'center',
-            render: (_, record) => Math.round(record.calories * record.weight / 100),
-        },
-        {
             title: 'Белки',
-            dataIndex: 'proteins',
-            key: 'proteins',
+            key: 'protein',
             align: 'center',
-            render: (_, record) => (record.proteins * record.weight / 100).toFixed(1),
+            render: (_, record) => {
+                const product = products.find(p => p.id === record.productId);
+                return product ? (product.protein * record.weight / 100).toFixed(1) : '—';
+            }
         },
         {
             title: 'Жиры',
-            dataIndex: 'fats',
-            key: 'fats',
+            key: 'fat',
             align: 'center',
-            render: (_, record) => (record.fats * record.weight / 100).toFixed(1),
+            render: (_, record) => {
+                const product = products.find(p => p.id === record.productId);
+                return product ? (product.fat * record.weight / 100).toFixed(1) : '—';
+            }
         },
         {
             title: 'Углеводы',
-            dataIndex: 'carbohydrates',
-            key: 'carbohydrates',
+            key: 'carbs',
             align: 'center',
-            render: (_, record) => (record.carbohydrates * record.weight / 100).toFixed(1),
+            render: (_, record) => {
+                const product = products.find(p => p.id === record.productId);
+
+                return product ? (product.carbs * record.weight / 100).toFixed(1) : '—';
+            }
+        },
+        {
+            title: 'Калории',
+            key: 'calories',
+            align: 'center',
+            render: (_, record) => {
+                const product = products.find(p => p.id === record.productId);
+                if (!product) return '—';
+                const calories = Utils.getCalories(product) * record.weight / 100;
+
+                return Math.round(calories);
+            }
         },
         {
             title: 'Действия',
             key: 'action',
             render: (_, record) => (
-                <Button
-                    type="link"
-                    danger
-                    onClick={() => handleDelete(record.id)}
-                >
+                <Button type="link" danger onClick={() => handleDelete(record.id!)}>
                     Удалить
                 </Button>
             ),
         },
     ];
+
+    // Обработчики
+    const handleDateChange = (date: dayjs.Dayjs | null) => {
+        if (date) {
+            setSelectedDate(date.format('YYYY-MM-DD'));
+        }
+    };
 
     const showModal = () => {
         form.resetFields();
@@ -88,7 +124,31 @@ const DailyMeals: React.FC = () => {
         setIsModalVisible(false);
     };
 
-    const handleProductChange = (productId: string) => {
+    const handleSubmit = async () => {
+        try {
+            const values = await form.validateFields();
+            const newMeal: Omit<IDailyMeal, 'id'> = {
+                productId: values.productId,
+                weight: values.weight,
+                date: selectedDate,
+            };
+
+            const createdMeal = await DailyMealsService.create(newMeal);
+            setMeals([...meals, createdMeal]);
+            handleCancel();
+        } catch (error) {
+            console.error(error)
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+
+        await DailyMealsService.delete(id);
+
+        setMeals(meals.filter(meal => meal.id !== id));
+    };
+
+    const handleProductSelect = (productId: number) => {
         const selectedProduct = products.find(p => p.id === productId);
         if (selectedProduct) {
             form.setFieldsValue({
@@ -97,88 +157,31 @@ const DailyMeals: React.FC = () => {
         }
     };
 
-    const handleSubmit = () => {
-        form.validateFields().then(values => {
-            const selectedProduct = products.find(p => p.id === values.productId);
-
-            if (selectedProduct) {
-                const newMealItem: IMealItem = {
-                    id: Date.now().toString(),
-                    productId: selectedProduct.id,
-                    name: selectedProduct.name,
-                    weight: values.weight,
-                    calories: selectedProduct.calories,
-                    proteins: selectedProduct.proteins,
-                    fats: selectedProduct.fats,
-                    carbohydrates: selectedProduct.carbohydrates,
-                };
-
-                setMeals({
-                    ...meals,
-                    items: [...meals.items, newMealItem],
-                });
-
-                message.success('Продукт добавлен в дневной рацион');
-                handleCancel();
-            }
-        });
-    };
-
-    const handleDelete = (id: string) => {
-        setMeals({
-            ...meals,
-            items: meals.items.filter((item) => item.id !== id),
-        });
-        message.success('Продукт удален из рациона');
-    };
-
-    const calculateTotal = (field: keyof Pick<IMealItem, 'calories' | 'proteins' | 'fats' | 'carbohydrates'>) => {
-        return meals.items.reduce((sum, item) => {
-            return sum + (item[field] * item.weight / 100);
-        }, 0);
-    };
-
     return (
-        <div>
-            <div style={{ marginBottom: 16 }}>
+        <Card title="Дневник питания">
+            <Space style={{ marginBottom: 16 }}>
+                <DatePicker
+                    value={dayjs(selectedDate)}
+                    onChange={handleDateChange}
+                    format="DD.MM.YYYY"
+                />
                 <Button type="primary" onClick={showModal}>
                     Добавить продукт
                 </Button>
-            </div>
+            </Space>
 
             <Table
                 columns={columns}
-                dataSource={meals.items}
+                dataSource={meals}
                 rowKey="id"
-                bordered
+                loading={loading}
                 pagination={false}
-                summary={() => (
-                    <Table.Summary fixed>
-                        <Table.Summary.Row>
-                            <Table.Summary.Cell index={0}>Итого</Table.Summary.Cell>
-                            <Table.Summary.Cell index={1} align="center">
-                                {meals.items.reduce((sum, item) => sum + item.weight, 0)} г
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={2} align="center">
-                                {Math.round(calculateTotal('calories'))} ккал
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={3} align="center">
-                                {calculateTotal('proteins')} г
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={4} align="center">
-                                {calculateTotal('fats').toFixed(1)} г
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={5} align="center">
-                                {calculateTotal('carbohydrates').toFixed(1)} г
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={6}></Table.Summary.Cell>
-                        </Table.Summary.Row>
-                    </Table.Summary>
-                )}
             />
 
+            <DailyProgress meals={meals} products={products} />
+
             <Modal
-                title="Добавить продукт в дневной рацион"
+                title="Добавить продукт"
                 open={isModalVisible}
                 onOk={handleSubmit}
                 onCancel={handleCancel}
@@ -196,9 +199,9 @@ const DailyMeals: React.FC = () => {
                             showSearch
                             optionFilterProp="children"
                             filterOption={(input, option) =>
-                                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                                String(option?.children).toLowerCase().includes(input.toLowerCase())
                             }
-                            onChange={handleProductChange}
+                            onChange={handleProductSelect}
                         >
                             {products.map(product => (
                                 <Option key={product.id} value={product.id}>
@@ -210,19 +213,15 @@ const DailyMeals: React.FC = () => {
 
                     <Form.Item
                         name="weight"
-                        label="Вес (граммы)"
-                        rules={[{ required: true, message: 'Укажите вес порции' }]}
+                        label="Вес (г)"
+                        rules={[{ required: true, message: 'Укажите вес' }]}
                     >
-                        <InputNumber
-                            min={1}
-                            step={1}
-                            style={{ width: '100%' }}
-                        />
+                        <InputNumber min={1} step={1} style={{ width: '100%' }} />
                     </Form.Item>
                 </Form>
             </Modal>
-        </div>
+        </Card>
     );
 };
 
-export default DailyMeals;
+export default DailyMealsPage;
