@@ -2,7 +2,7 @@ import { lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
 import AppLayout from './components/Layout/AppLayout';
 import NotFound from "./components/pages/NotFound";
-import About from "./components/pages/About";
+import Settings from "./components/pages/Settings";
 import AuthRoute from "./components/AuthRoute";
 
 const Login = lazy(() => import('./components/auth/LoginForm'));
@@ -24,8 +24,8 @@ const routes: RouteObject[] = [
                 element: <Home />,
             },
             {
-                path: 'about',
-                element: <About />,
+                path: 'settings',
+                element: <Settings />,
             },
             {
                 path: 'products',
