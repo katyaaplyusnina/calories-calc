@@ -1,4 +1,4 @@
-export interface IUserSettings {
+export interface IUserSettingsResponse {
     weight: number;
     height: number;
     age: number;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, InputNumber, Radio, Button, Card, Typography, Slider } from 'antd';
 import { IUserSettings } from '../../types/UserSettings';
+import UserSettingsService from "../../services/user-settings.service";
 
 const { Title } = Typography;
 
@@ -16,18 +17,23 @@ const Settings: React.FC = () => {
     const [form] = Form.useForm();
     const [initialValues, setInitialValues] = useState<IUserSettings | null>(null);
 
-    // Загрузка сохраненных настроек при монтировании
     useEffect(() => {
-        const savedSettings = localStorage.getItem('userSettings');
-        if (savedSettings) {
-            const settings = JSON.parse(savedSettings);
-            setInitialValues(settings);
-            form.setFieldsValue(settings);
-        }
+        const fetchData = async () => {
+            try {
+                const settings = await UserSettingsService.get();
+
+                setInitialValues(settings);
+                form.setFieldsValue(settings);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        fetchData();
     }, [form]);
 
     const onFinish = (values: IUserSettings) => {
-        localStorage.setItem('userSettings', JSON.stringify(values));
+        UserSettingsService.update(values);
     };
 
     return (
@@ -35,7 +41,7 @@ const Settings: React.FC = () => {
             <Form
                 form={form}
                 layout="vertical"
-                initialValues={initialValues || {
+                initialValues={initialValues ?? {
                     gender: 'male',
                     goal: 'maintain',
                     activityLevel: 1.375
@@ -83,7 +89,7 @@ const Settings: React.FC = () => {
                     rules={[{ required: true }]}
                 >
                     <Radio.Group>
-                        <Radio value="lose">Снижение веса</Radio>
+                        <Radio value="loss">Снижение веса</Radio>
                         <Radio value="maintain">Поддержание веса</Radio>
                         <Radio value="gain">Набор массы</Radio>
                     </Radio.Group>
