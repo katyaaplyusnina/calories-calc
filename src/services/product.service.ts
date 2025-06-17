@@ -1,6 +1,6 @@
-import httpClient from "./http-client";
-import {IProductResponse} from "../types/ProductResponse";
-import {IProduct} from "../types/Product";
+import httpClient from './http-client';
+import { IProductResponse } from '../types/ProductResponse';
+import { IProduct } from '../types/Product';
 
 const mapper = (productData: IProductResponse): IProduct => ({
     id: productData.id,

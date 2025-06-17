@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button } from 'antd';
 import { IAuthData } from '../../types/user';
 import { login } from '../../services/auth.service';
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm: React.FC = () => {
     const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ const LoginForm: React.FC = () => {
             navigate('/');
 
         } catch (error) {
-            console.error('Ошибка входа. Проверьте email и пароль');
+            console.error(error);
         } finally {
             setLoading(false);
         }

@@ -1,5 +1,5 @@
-import {IAuthData, IAuthResponse} from '../types/user';
-import httpClient from "./http-client";
+import { IAuthData, IAuthResponse } from '../types/user';
+import httpClient from './http-client';
 
 export const login = async (data: IAuthData): Promise<IAuthResponse> => {
     const response = await httpClient.post('/auth/login', data);

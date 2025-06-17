@@ -1,8 +1,8 @@
-import React, {Suspense} from 'react';
-import {BrowserRouter, useRoutes} from 'react-router-dom';
+import React, { Suspense } from 'react';
+import { BrowserRouter, useRoutes } from 'react-router-dom';
 import './App.css';
 import routes from "./routes";
-import {Spin} from "antd";
+import { Spin } from "antd";
 
 const Routes = () => {
     return useRoutes(routes);
