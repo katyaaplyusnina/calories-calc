@@ -1,27 +1,24 @@
-import React, { useState } from 'react';
-import { Form, Input, Button } from 'antd';
+import React, { useEffect } from 'react';
+import { Form, Input, Button, Alert } from 'antd';
 import { IAuthData } from '../../types/user';
-import { login } from '../../services/auth.service';
+import { useDispatch, useSelector } from 'react-redux';
+import { login } from '../../store/authSlice';
 import { useNavigate } from "react-router-dom";
+import { RootState, AppDispatch } from '../../store';
 
 const LoginForm: React.FC = () => {
-    const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const { loading, error, token } = useSelector((state: RootState) => state.auth);
+
+    useEffect(() => {
+        if (token) {
+            navigate('/');
+        }
+    }, [token, navigate]);
 
     const handleSubmit = async (values: IAuthData) => {
-        try {
-            setLoading(true);
-            const { token } = await login(values);
-
-            localStorage.setItem('authToken', token);
-
-            navigate('/');
-
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        await dispatch(login(values));
     };
 
     return (
@@ -44,6 +41,8 @@ const LoginForm: React.FC = () => {
             >
                 <Input.Password placeholder="Пароль" />
             </Form.Item>
+
+            {error && <Alert type="error" message={error} style={{ marginBottom: 16 }} />}
 
             <Form.Item>
                 <Button type="primary" htmlType="submit" loading={loading} block>

@@ -1,44 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, DatePicker, Modal, Form, InputNumber, Select, Card, Space } from 'antd';
+import React, { useEffect, useCallback } from 'react';
+import { Table, Button, DatePicker, Modal, Form, InputNumber, Select, Card, Space, Spin, Alert } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { IDailyMeal } from "../../types/DailyMeal";
-import { IProduct } from "../../types/Product";
-import DailyMealsService from "../../services/daily-meals.service";
-import ProductService from "../../services/product.service";
-import Utils from "../../utils/Utils";
 import DailyProgress from "../DailyProgress";
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
+import { fetchDailyMeals, addDailyMeal, deleteDailyMeal } from '../../store/dailyMealsSlice';
+import { fetchProducts } from '../../store/productsSlice';
 
 const { Option } = Select;
 
 const DailyMealsPage: React.FC = () => {
-    const [meals, setMeals] = useState<IDailyMeal[]>([]);
-    const [products, setProducts] = useState<IProduct[]>([]);
-    const [selectedDate, setSelectedDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedDate, setSelectedDate] = React.useState<string>(dayjs().format('YYYY-MM-DD'));
+    const [isModalVisible, setIsModalVisible] = React.useState(false);
     const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
+
+    const dispatch = useDispatch<AppDispatch>();
+    const { items: meals, loading: mealsLoading, error: mealsError } = useSelector((state: RootState) => state.dailyMeals);
+    const { items: products, loading: productsLoading, error: productsError } = useSelector((state: RootState) => state.products);
 
     // Загрузка данных
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const [mealsData, productsData] = await Promise.all([
-                    DailyMealsService.getByDate(selectedDate),
-                    ProductService.getAll(),
-                ]);
-                setMeals(mealsData);
-                setProducts(productsData);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [selectedDate]);
+        dispatch(fetchDailyMeals(selectedDate));
+        dispatch(fetchProducts());
+    }, [dispatch, selectedDate]);
 
     // Колонки таблицы
     const columns: ColumnsType<IDailyMeal> = [
@@ -92,8 +78,7 @@ const DailyMealsPage: React.FC = () => {
             render: (_, record) => {
                 const product = products.find(p => p.id === record.productId);
                 if (!product) return '—';
-                const calories = Utils.getCalories(product) * record.weight / 100;
-
+                const calories = (product.protein * 4 + product.fat * 9 + product.carbs * 4) * record.weight / 100;
                 return Math.round(calories);
             }
         },
@@ -132,21 +117,16 @@ const DailyMealsPage: React.FC = () => {
                 weight: values.weight,
                 date: selectedDate,
             };
-
-            const createdMeal = await DailyMealsService.create(newMeal);
-            setMeals([...meals, createdMeal]);
+            await dispatch(addDailyMeal(newMeal)).unwrap();
             handleCancel();
         } catch (error) {
             console.error(error)
         }
     };
 
-    const handleDelete = async (id: number) => {
-
-        await DailyMealsService.delete(id);
-
-        setMeals(meals.filter(meal => meal.id !== id));
-    };
+    const handleDelete = useCallback(async (id: number) => {
+        await dispatch(deleteDailyMeal(id));
+    }, [dispatch]);
 
     const handleProductSelect = (productId: number) => {
         const selectedProduct = products.find(p => p.id === productId);
@@ -169,12 +149,14 @@ const DailyMealsPage: React.FC = () => {
                     Добавить продукт
                 </Button>
             </Space>
-
+            {(mealsLoading || productsLoading) && <Spin style={{ marginBottom: 16 }} />}
+            {mealsError && <Alert type="error" message={mealsError} style={{ marginBottom: 16 }} />}
+            {productsError && <Alert type="error" message={productsError} style={{ marginBottom: 16 }} />}
             <Table
                 columns={columns}
                 dataSource={meals}
                 rowKey="id"
-                loading={loading}
+                loading={mealsLoading}
                 pagination={false}
             />
 

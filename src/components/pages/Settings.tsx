@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Form, InputNumber, Radio, Button, Card, Typography, Slider } from 'antd';
+import React, { useEffect } from 'react';
+import { Form, InputNumber, Radio, Button, Card, Typography, Slider, Spin, Alert } from 'antd';
 import { IUserSettings } from '../../types/UserSettings';
-import UserSettingsService from "../../services/user-settings.service";
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
+import { fetchUserSettings, updateUserSettings } from '../../store/userSettingsSlice';
 
 const { Title } = Typography;
 
@@ -15,29 +17,27 @@ const activityLevelMarks = {
 
 const Settings: React.FC = () => {
     const [form] = Form.useForm();
-    const [initialValues, setInitialValues] = useState<IUserSettings | null>(null);
+    const dispatch = useDispatch<AppDispatch>();
+    const { data: initialValues, loading, error } = useSelector((state: RootState) => state.userSettings);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const settings = await UserSettingsService.get();
+        dispatch(fetchUserSettings());
+    }, [dispatch]);
 
-                setInitialValues(settings);
-                form.setFieldsValue(settings);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-
-        fetchData();
-    }, [form]);
+    useEffect(() => {
+        if (initialValues) {
+            form.setFieldsValue(initialValues);
+        }
+    }, [initialValues, form]);
 
     const onFinish = (values: IUserSettings) => {
-        UserSettingsService.update(values);
+        dispatch(updateUserSettings(values));
     };
 
     return (
         <Card title={<Title level={4}>Персональные настройки</Title>} style={{ maxWidth: 600 }}>
+            {loading && <Spin style={{ marginBottom: 16 }} />}
+            {error && <Alert type="error" message={error} style={{ marginBottom: 16 }} />}
             <Form
                 form={form}
                 layout="vertical"
@@ -110,7 +110,7 @@ const Settings: React.FC = () => {
                 </Form.Item>
 
                 <Form.Item>
-                    <Button type="primary" htmlType="submit">
+                    <Button type="primary" htmlType="submit" loading={loading}>
                         Сохранить настройки
                     </Button>
                 </Form.Item>
