@@ -6,7 +6,7 @@ import {
     Table,
     Modal,
     Space,
-    Input, Checkbox, Spin, Alert
+    Input, Checkbox, Spin, Alert, Typography, Card
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { IProduct } from '../../types/Product';
@@ -21,6 +21,7 @@ import {
 } from '../../store/productsSlice';
 
 const { Search } = Input;
+const { Title, Paragraph } = Typography;
 
 const ProductCatalog: React.FC = () => {
     const [form] = Form.useForm();
@@ -134,28 +135,45 @@ const ProductCatalog: React.FC = () => {
 
     return (
         <div>
-            <div style={{ display: 'flex', marginBottom: 16, gap: 16 }}>
-                <Search
-                    placeholder="Поиск по названию"
-                    allowClear
-                    enterButton="Найти"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    style={{ width: 300 }}
-                />
-                <Button type="primary" onClick={showModal}>
-                    Добавить продукт
-                </Button>
+            <div style={{ 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '24px',
+                borderRadius: '12px',
+                marginBottom: '24px',
+                color: '#fff'
+            }}>
+                <Title level={2} style={{ color: '#fff', margin: 0, marginBottom: '8px' }}>
+                    Каталог продуктов
+                </Title>
+                <Paragraph style={{ color: '#fff', margin: 0, fontSize: '16px', opacity: 0.9 }}>
+                    Управляйте базой продуктов и их пищевой ценностью
+                </Paragraph>
             </div>
-            {loading && <Spin style={{ marginBottom: 16 }} />}
-            {error && <Alert type="error" message={error} style={{ marginBottom: 16 }} />}
-            <Table
-                columns={columns}
-                dataSource={filteredProducts}
-                rowKey="id"
-                bordered
-                pagination={{ pageSize: 10 }}
-            />
+
+            <Card>
+                <div style={{ display: 'flex', marginBottom: 16, gap: 16 }}>
+                    <Search
+                        placeholder="Поиск по названию"
+                        allowClear
+                        enterButton="Найти"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        style={{ width: 300 }}
+                    />
+                    <Button type="primary" onClick={showModal}>
+                        Добавить продукт
+                    </Button>
+                </div>
+                {loading && <Spin style={{ marginBottom: 16 }} />}
+                {error && <Alert type="error" message={error} style={{ marginBottom: 16 }} />}
+                <Table
+                    columns={columns}
+                    dataSource={filteredProducts}
+                    rowKey="id"
+                    bordered
+                    pagination={{ pageSize: 10 }}
+                />
+            </Card>
 
             <Modal
                 title={form.getFieldValue('id') ? 'Редактировать продукт' : 'Добавить продукт'}
