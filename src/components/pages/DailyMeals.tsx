@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
-import { Table, Button, DatePicker, Modal, Form, InputNumber, Select, Card, Space, Spin, Alert } from 'antd';
+import { Table, Button, DatePicker, Modal, Form, InputNumber, Select, Card, Space, Spin, Alert, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { IDailyMeal } from "../../types/DailyMeal";
@@ -10,6 +10,7 @@ import { fetchDailyMeals, addDailyMeal, deleteDailyMeal } from '../../store/dail
 import { fetchProducts } from '../../store/productsSlice';
 
 const { Option } = Select;
+const { Title, Paragraph } = Typography;
 
 const DailyMealsPage: React.FC = () => {
     const [selectedDate, setSelectedDate] = React.useState<string>(dayjs().format('YYYY-MM-DD'));
@@ -138,29 +139,46 @@ const DailyMealsPage: React.FC = () => {
     };
 
     return (
-        <Card title="Дневник питания">
-            <Space style={{ marginBottom: 16 }}>
-                <DatePicker
-                    value={dayjs(selectedDate)}
-                    onChange={handleDateChange}
-                    format="DD.MM.YYYY"
-                />
-                <Button type="primary" onClick={showModal}>
-                    Добавить продукт
-                </Button>
-            </Space>
-            {(mealsLoading || productsLoading) && <Spin style={{ marginBottom: 16 }} />}
-            {mealsError && <Alert type="error" message={mealsError} style={{ marginBottom: 16 }} />}
-            {productsError && <Alert type="error" message={productsError} style={{ marginBottom: 16 }} />}
-            <Table
-                columns={columns}
-                dataSource={meals}
-                rowKey="id"
-                loading={mealsLoading}
-                pagination={false}
-            />
+        <div>
+            <div style={{ 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '24px',
+                borderRadius: '12px',
+                marginBottom: '24px',
+                color: '#fff'
+            }}>
+                <Title level={2} style={{ color: '#fff', margin: 0, marginBottom: '8px' }}>
+                    Дневник питания
+                </Title>
+                <Paragraph style={{ color: '#fff', margin: 0, fontSize: '16px', opacity: 0.9 }}>
+                    Отслеживайте свой дневной рацион и контролируйте потребление калорий
+                </Paragraph>
+            </div>
 
-            <DailyProgress meals={meals} products={products} />
+            <Card>
+                <Space style={{ marginBottom: 16 }}>
+                    <DatePicker
+                        value={dayjs(selectedDate)}
+                        onChange={handleDateChange}
+                        format="DD.MM.YYYY"
+                    />
+                    <Button type="primary" onClick={showModal}>
+                        Добавить продукт
+                    </Button>
+                </Space>
+                {(mealsLoading || productsLoading) && <Spin style={{ marginBottom: 16 }} />}
+                {mealsError && <Alert type="error" message={mealsError} style={{ marginBottom: 16 }} />}
+                {productsError && <Alert type="error" message={productsError} style={{ marginBottom: 16 }} />}
+                <Table
+                    columns={columns}
+                    dataSource={meals}
+                    rowKey="id"
+                    loading={mealsLoading}
+                    pagination={false}
+                />
+
+                <DailyProgress meals={meals} products={products} />
+            </Card>
 
             <Modal
                 title="Добавить продукт"
@@ -202,7 +220,7 @@ const DailyMealsPage: React.FC = () => {
                     </Form.Item>
                 </Form>
             </Modal>
-        </Card>
+        </div>
     );
 };
 
