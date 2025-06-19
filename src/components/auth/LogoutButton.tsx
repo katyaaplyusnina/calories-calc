@@ -3,6 +3,8 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../../store/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { AppDispatch } from '../../store';
+import { Button } from 'antd';
+import { LogoutOutlined } from '@ant-design/icons';
 
 const LogoutButton: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -14,18 +16,20 @@ const LogoutButton: React.FC = () => {
     };
 
     return (
-        <span
-          onClick={handleLogout}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                  handleLogout();
-              }
-          }}
+        <Button
+            type="text"
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+            style={{
+                color: '#fff',
+                border: 'none',
+                padding: '4px 8px',
+                height: 'auto',
+                fontSize: '14px'
+            }}
         >
             Выйти
-        </span>
+        </Button>
     );
 };
 
