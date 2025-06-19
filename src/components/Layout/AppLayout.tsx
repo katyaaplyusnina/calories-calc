@@ -1,14 +1,14 @@
 import { Layout } from 'antd';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
-import Sider from './Sider';
+import AppSider from './AppSider';
 
 const { Content } = Layout;
 
 const AppLayout = () => {
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Sider />
+            <AppSider />
             <Layout>
                 <Header />
                 <Content style={{ margin: '24px 16px 0' }}>
