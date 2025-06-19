@@ -1,11 +1,12 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { isAuthenticated } from "../services/auth.service";
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const isAuth = isAuthenticated();
+    const token = useSelector((state: RootState) => state.auth.token);
 
-    if (!isAuth) {
+    if (!token) {
         return <Navigate to="/login" replace />;
     }
 

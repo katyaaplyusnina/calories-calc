@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
     Button,
     Form,
@@ -6,25 +6,33 @@ import {
     Table,
     Modal,
     Space,
-    Input, Checkbox
+    Input, Checkbox, Spin, Alert
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { IProduct } from '../../types/Product';
-import ProductService from "../../services/product.service";
-import Utils from "../../utils/Utils";
+import Utils from '../../utils/Utils';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
+import {
+    fetchProducts,
+    addProduct,
+    updateProduct,
+    deleteProduct
+} from '../../store/productsSlice';
 
 const { Search } = Input;
 
 const ProductCatalog: React.FC = () => {
     const [form] = Form.useForm();
-    const [products, setProducts] = useState<IProduct[]>([]);
+    const dispatch = useDispatch<AppDispatch>();
+    const { items: products, loading, error } = useSelector((state: RootState) => state.products);
 
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [searchText, setSearchText] = useState('');
+    const [isModalVisible, setIsModalVisible] = React.useState(false);
+    const [searchText, setSearchText] = React.useState('');
 
     useEffect(() => {
-        ProductService.getAll().then(data => setProducts(data));
-    }, []);
+        dispatch(fetchProducts());
+    }, [dispatch]);
 
     const columns: ColumnsType<IProduct> = [
         {
@@ -95,35 +103,20 @@ const ProductCatalog: React.FC = () => {
         form.resetFields();
     };
 
-    const handleSubmit = () => {
-        form
-            .validateFields()
-            .then(async (values) => {
-                const editedId = form.getFieldValue('id');
+    const handleSubmit = async () => {
+        try {
+            const values = await form.validateFields();
+            const editedId = form.getFieldValue('id');
 
-                if (editedId) {
-                    const updatedProduct = { ...values };
-
-                    await ProductService.update(editedId, updatedProduct);
-
-                    setProducts(products.map(product =>
-                        product.id === editedId ? { ...values, id: editedId } : product
-                    ));
-                } else {
-                    const newProduct: IProduct = { ...values };
-
-                    const productResponse = await ProductService.create(newProduct);
-
-                    newProduct.id = productResponse.id;
-
-                    setProducts([...products, newProduct]);
-                }
-
-                handleCancel();
-            })
-            .catch((info) => {
-                console.log('Validate Failed:', info);
-            });
+            if (editedId) {
+                await dispatch(updateProduct({ id: editedId, product: values })).unwrap();
+            } else {
+                await dispatch(addProduct(values)).unwrap();
+            }
+            handleCancel();
+        } catch (error) {
+            // Ошибка уже обработана в слайсе
+        }
     };
 
     const handleEdit = (product: IProduct) => {
@@ -132,9 +125,7 @@ const ProductCatalog: React.FC = () => {
     };
 
     const handleDelete = async (id: number) => {
-        await ProductService.delete(id);
-
-        setProducts(products.filter((product) => product.id !== id));
+        await dispatch(deleteProduct(id));
     };
 
     const filteredProducts = products.filter(product =>
@@ -156,7 +147,8 @@ const ProductCatalog: React.FC = () => {
                     Добавить продукт
                 </Button>
             </div>
-
+            {loading && <Spin style={{ marginBottom: 16 }} />}
+            {error && <Alert type="error" message={error} style={{ marginBottom: 16 }} />}
             <Table
                 columns={columns}
                 dataSource={filteredProducts}
