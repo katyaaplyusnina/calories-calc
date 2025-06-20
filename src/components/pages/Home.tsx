@@ -1,59 +1,88 @@
 import React from "react";
-import { Typography, Card, Row, Col, Statistic } from "antd";
-import { FireOutlined, TrophyOutlined, UserOutlined } from "@ant-design/icons";
+import { Card, Typography, Space, Button } from 'antd';
+import { CalculatorOutlined, BarChartOutlined, UserOutlined } from '@ant-design/icons';
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 function Home() {
     return (
-        <div>
-            <div style={{ 
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                padding: '32px',
-                borderRadius: '12px',
-                marginBottom: '24px',
-                color: '#fff'
-            }}>
-                <Title level={2} style={{ color: '#fff', margin: 0, marginBottom: '8px' }}>
-                    Добро пожаловать в Калькулятор калорий!
-                </Title>
-                <Paragraph style={{ color: '#fff', margin: 0, fontSize: '16px', opacity: 0.9 }}>
-                    Отслеживайте свое питание, контролируйте калории и достигайте своих целей
-                </Paragraph>
-            </div>
+        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                {/* Приветственная карточка */}
+                <Card style={{ textAlign: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+                    <Title level={2} style={{ color: 'white', marginBottom: 16 }}>
+                        Добро пожаловать в КалоТрекер! (рабочее название)🎉
+                    </Title>
+                    <Paragraph style={{ color: 'white', fontSize: 16, marginBottom: 0 }}>
+                        Ваш персональный помощник для контроля питания и достижения здоровых целей
+                    </Paragraph>
+                </Card>
 
-            <Row gutter={[16, 16]}>
-                <Col xs={24} sm={8}>
-                    <Card>
-                        <Statistic
-                            title="Сегодня съедено"
-                            value={0}
-                            suffix="ккал"
-                            prefix={<FireOutlined style={{ color: '#ff4d4f' }} />}
-                        />
+                {/* Описание функций */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
+                    <Card hoverable>
+                        <Space direction="vertical" align="center" style={{ width: '100%' }}>
+                            <CalculatorOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+                            <Title level={4}>Подсчет калорий</Title>
+                            <Text type="secondary" style={{ textAlign: 'center' }}>
+                                Отслеживайте потребление калорий, белков, жиров и углеводов с точностью до грамма
+                            </Text>
+                        </Space>
                     </Card>
-                </Col>
-                <Col xs={24} sm={8}>
-                    <Card>
-                        <Statistic
-                            title="Цель на день"
-                            value={2000}
-                            suffix="ккал"
-                            prefix={<TrophyOutlined style={{ color: '#52c41a' }} />}
-                        />
+
+                    <Card hoverable>
+                        <Space direction="vertical" align="center" style={{ width: '100%' }}>
+                            <BarChartOutlined style={{ fontSize: 48, color: '#52c41a' }} />
+                            <Title level={4}>Анализ прогресса</Title>
+                            <Text type="secondary" style={{ textAlign: 'center' }}>
+                                Визуализируйте свой прогресс с помощью графиков и диаграмм
+                            </Text>
+                        </Space>
                     </Card>
-                </Col>
-                <Col xs={24} sm={8}>
-                    <Card>
-                        <Statistic
-                            title="Осталось"
-                            value={2000}
-                            suffix="ккал"
-                            prefix={<UserOutlined style={{ color: '#1890ff' }} />}
-                        />
+
+                    <Card hoverable>
+                        <Space direction="vertical" align="center" style={{ width: '100%' }}>
+                            <UserOutlined style={{ fontSize: 48, color: '#faad14' }} />
+                            <Title level={4}>Персональные цели</Title>
+                            <Text type="secondary" style={{ textAlign: 'center' }}>
+                                Устанавливайте индивидуальные цели и отслеживайте их достижение
+                            </Text>
+                        </Space>
                     </Card>
-                </Col>
-            </Row>
+                </div>
+
+                {/* Призыв к действию */}
+                <Card style={{ textAlign: 'center' }}>
+                    <Title level={3}>Готовы начать?</Title>
+                    <Paragraph style={{ fontSize: 16, marginBottom: 24 }}>
+                        Начните свой путь к здоровому питанию уже сегодня. Добавьте свой первый прием пищи или настройте персональные цели.
+                    </Paragraph>
+                    <Space size="large">
+                        <Button type="primary" size="large">
+                            Добавить прием пищи
+                        </Button>
+                        <Button size="large">
+                            Настроить цели
+                        </Button>
+                    </Space>
+                </Card>
+
+                {/* Дополнительная информация */}
+                <Card>
+                    <Title level={4}>О приложении</Title>
+                    <Paragraph>
+                        КалоТрекер - это современное веб-приложение для контроля питания, вдохновленное FatSecret. 
+                        Мы помогаем пользователям вести здоровый образ жизни, предоставляя удобные инструменты для:
+                    </Paragraph>
+                    <ul>
+                        <li>Подсчета калорий и макронутриентов</li>
+                        <li>Ведения дневника питания</li>
+                        <li>Отслеживания прогресса</li>
+                        <li>Установки и достижения целей</li>
+                        <li>Анализа пищевых привычек</li>
+                    </ul>
+                </Card>
+            </Space>
         </div>
     );
 }

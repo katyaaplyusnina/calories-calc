@@ -123,7 +123,7 @@ const AppSider = () => {
                         }}
                     >
                         <Link to="/calculator" style={{ color: 'inherit', textDecoration: 'none' }}>
-                            Калькулятор калорий
+                            AI калькулятор калорий
                         </Link>
                     </Menu.Item>
                     <Menu.Item 
