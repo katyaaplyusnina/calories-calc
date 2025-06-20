@@ -4,7 +4,6 @@ import { logout } from '../../store/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { AppDispatch } from '../../store';
 import { Button } from 'antd';
-import { LogoutOutlined } from '@ant-design/icons';
 
 const LogoutButton: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -18,14 +17,11 @@ const LogoutButton: React.FC = () => {
     return (
         <Button
             type="text"
-            icon={<LogoutOutlined />}
             onClick={handleLogout}
             style={{
-                color: '#fff',
-                border: 'none',
-                padding: '4px 8px',
-                height: 'auto',
-                fontSize: '14px'
+                padding: 0,
+                fontWeight: 500,
+                color: 'inherit'
             }}
         >
             Выйти
