@@ -9,6 +9,7 @@ const Login = lazy(() => import('./components/auth/LoginForm'));
 const ProductCatalog = lazy(() => import('./components/pages/ProductCatalog'));
 const DailyMeals = lazy(() => import('./components/pages/DailyMeals'));
 const Home = lazy(() => import('./components/pages/Home'));
+const AICalculator = lazy(() => import('./components/pages/AICalculator'));
 
 const routes: RouteObject[] = [
     {
@@ -40,6 +41,14 @@ const routes: RouteObject[] = [
                 element: (
                     <AuthRoute>
                         <DailyMeals />
+                    </AuthRoute>
+                ),
+            },
+            {
+                path: 'calculator',
+                element: (
+                    <AuthRoute>
+                        <AICalculator />
                     </AuthRoute>
                 ),
             },
